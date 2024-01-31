@@ -51,21 +51,62 @@ namespace OnCreate_of_Document_Logs
             if (_context.InputParameters.Contains("Target") && _context.InputParameters["Target"] is Entity)
             {
                 // Obtendo o registro criado
-                Entity createdEntity = (Entity)_context.InputParameters["Target"];
+                Entity createdDocumentLog = (Entity)_context.InputParameters["Target"];
 
                 // Verificando se o registro foi criado na entidade desejada
-                if (createdEntity.LogicalName == "arq_documentlog")
+                if (createdDocumentLog.LogicalName == "arq_documentlog")
                 {
                     // Criando um novo registro na entidade destino
-                    Entity newEntity = new Entity("arq_documentpartylog");
-                    newEntity["arq_name"] = "Document Party Log:" + createdEntity.GetAttributeValue<string>("arq_subject");
-                    Guid newRecordId = service.Create(newEntity);
+                    Entity createdDocumentPartyLog = new Entity("arq_documentpartylog");
+                    String username = "";
+
+                    EntityReference relatedEntityReference = createdDocumentLog.GetAttributeValue<EntityReference>("arq_doctype");
+                    if (relatedEntityReference != null)
+                    {
+                        Guid doctypeid = relatedEntityReference.Id;
+                        ColumnSet columns = new ColumnSet("arq_documentclassification");
+                        Entity docRecord = service.Retrieve("arq_documenttype", doctypeid, columns);
+                        OptionSetValue optionSetValue = docRecord.GetAttributeValue<OptionSetValue>("arq_documentclassification");
+                        int doctype = optionSetValue.Value;
+
+
+                        if (doctype == 1)
+                        {
+                            //  "Internal";
+
+                            username = "Internal";
+
+
+                        }
+
+                        else if (doctype == 2 || doctype == 3)
+                        {
+                            // Outbound";
+
+                            username = "External";
+
+
+                        } else
+                        {
+                            username = "";
+                        }
+
+                        string currentyear = DateTime.Now.Year.ToString();
+                        string last2digitsofyear = currentyear.Substring(currentyear.Length - 2);
+                        createdDocumentPartyLog["arq_name"] = $"DPL{last2digitsofyear}-000001-{username}";
+                    
+
+
+                    }
+
+                    Guid newRecordId = service.Create(createdDocumentPartyLog);
+
 
                     // Definindo os valores do campo de lookup para associar os registros
-                    createdEntity["arq_docfromparty"] = new EntityReference("arq_documentlog", newRecordId);
-                    createdEntity["arq_doctoparty"] = new EntityReference("arq_documentlog", newRecordId);
-
-                    service.Update(createdEntity);
+                    createdDocumentLog["arq_docfromparty"] = new EntityReference("arq_documentlog", newRecordId);
+                    createdDocumentLog["arq_doctoparty"] = new EntityReference("arq_documentlog", newRecordId);
+                    createdDocumentLog["arq_name"] = "Document Log: " + createdDocumentLog.GetAttributeValue<string>("arq_subject"); 
+                    service.Update(createdDocumentLog);
 
 
                     trace.Trace("Novo registro criado na entidade destino com ID: " + newRecordId);
@@ -201,7 +242,7 @@ namespace OnCreate_of_Document_Logs
         //    //trace.Trace("Booking record updated.");
         //}
 
-        
+
 
     }
 }
