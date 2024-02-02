@@ -47,7 +47,7 @@ namespace OnCreate_of_Document_Logs
 
         private void OnCreate()
         {
-            // Verificando se o plugin está sendo acionado na criação de um registro
+            
             if (_context.InputParameters.Contains("Target") && _context.InputParameters["Target"] is Entity)
             {
                 // Get Record
