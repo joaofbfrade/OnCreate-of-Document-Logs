@@ -50,13 +50,13 @@ namespace OnCreate_of_Document_Logs
             // Verificando se o plugin está sendo acionado na criação de um registro
             if (_context.InputParameters.Contains("Target") && _context.InputParameters["Target"] is Entity)
             {
-                // Obtendo o registro criado
+                // Get Record
                 Entity createdDocumentLog = (Entity)_context.InputParameters["Target"];
 
-                // Verificando se o registro foi criado na entidade desejada
+                
                 if (createdDocumentLog.LogicalName == "arq_documentlog")
                 {
-                    // Criando um novo registro na entidade destino
+                    // New Record
                     Entity createdDocumentPartyLog = new Entity("arq_documentpartylog");
                     String username = "";
                     var number = 0;
@@ -133,7 +133,6 @@ namespace OnCreate_of_Document_Logs
                     Guid newRecordId = service.Create(createdDocumentPartyLog);
 
 
-                    // Definindo os valores do campo de lookup para associar os registros
                     createdDocumentLog["arq_docfromparty"] = new EntityReference("arq_documentlog", newRecordId);
                     createdDocumentLog["arq_doctoparty"] = new EntityReference("arq_documentlog", newRecordId);
                     createdDocumentLog["arq_name"] = "Document Log: " + createdDocumentLog.GetAttributeValue<string>("arq_subject");
