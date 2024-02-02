@@ -96,6 +96,10 @@ namespace OnCreate_of_Document_Logs
                             username = "External";
                             prefixcode = "OUT" + last2digitsofyear + "-";
                         }
+                        else                        
+                        {
+
+                        }
 
 
                         // Instantiate QueryExpression query
