@@ -62,6 +62,8 @@ namespace OnCreate_of_Document_Logs
                     var number = 0;
                     var stringnumber = "";
                     var prefixcode = "";
+                    string currentyear = DateTime.Now.Year.ToString();
+                    string last2digitsofyear = currentyear.Substring(currentyear.Length - 2);
 
                     EntityReference relatedEntityReference = createdDocumentLog.GetAttributeValue<EntityReference>("arq_doctype");
                     if (relatedEntityReference != null)
@@ -77,7 +79,7 @@ namespace OnCreate_of_Document_Logs
                         {
                             //  "Internal";
                             username = "Internal";
-                            prefixcode = "Internal-";
+                            prefixcode = "INT"+last2digitsofyear+"-";
 
 
                         }
@@ -85,14 +87,14 @@ namespace OnCreate_of_Document_Logs
                         {
                             // Inbound";
                             username = "External";
-                            prefixcode = "EXP-IN-";
+                            prefixcode = "INB" + last2digitsofyear + "-" ;
 
                         }
                         else if (doctype == 3)
                         {
                             // Outbound";
                             username = "External";
-                            prefixcode = "EXP-OUT-";
+                            prefixcode = "OUT" + last2digitsofyear + "-";
                         }
 
 
@@ -124,8 +126,7 @@ namespace OnCreate_of_Document_Logs
                             number = 1;
                         }
 
-                        string currentyear = DateTime.Now.Year.ToString();
-                        string last2digitsofyear = currentyear.Substring(currentyear.Length - 2);
+                       
                         createdDocumentPartyLog["arq_name"] = $"DPL{last2digitsofyear}-{number.ToString("000000")}-{username}";
 
                     }
