@@ -16,7 +16,7 @@ namespace OnCreate_of_Document_Logs
         public IPluginExecutionContext _context = null;
         public IOrganizationServiceFactory _serviceFactory = null;
         public IOrganizationService service = null;
-        public ITracingService trace = null;
+        public ITracingService trace = null; 
 
         public void Execute(IServiceProvider serviceProvider)
         {
@@ -59,6 +59,9 @@ namespace OnCreate_of_Document_Logs
                     // Criando um novo registro na entidade destino
                     Entity createdDocumentPartyLog = new Entity("arq_documentpartylog");
                     String username = "";
+                    var number =0;
+                    var stringnumber = "";
+                    var prefixcode = "";
 
                     EntityReference relatedEntityReference = createdDocumentLog.GetAttributeValue<EntityReference>("arq_doctype");
                     if (relatedEntityReference != null)
@@ -75,26 +78,77 @@ namespace OnCreate_of_Document_Logs
                             //  "Internal";
 
                             username = "Internal";
+                            prefixcode = "Internal-";
 
 
                         }
 
-                        else if (doctype == 2 || doctype == 3)
+                        else if (doctype == 2 )
                         {
-                            // Outbound";
+                            // INbound";
 
                             username = "External";
+                            prefixcode = "EXP-IN-";
 
 
-                        } else
+                        } else if (doctype == 3)
                         {
-                            username = "";
+                            // outbound";
+
+                            username = "External";
+                            prefixcode = "EXP-OUT-";
                         }
+
+
+                        // Instantiate QueryExpression query
+                        var query = new QueryExpression("arq_documentpartylog");
+                        query.TopCount = 1;
+                        // Add all columns to query.ColumnSet
+                        query.ColumnSet.AllColumns = true;
+
+                        // Add orders
+                        query.AddOrder("createdon", OrderType.Descending);
+
+
+                        EntityCollection results = service.RetrieveMultiple(query);
+
+                        if (results.Entities.Count > 0)
+                        {
+                            // Acesse o primeiro registro (índice 0)
+                            Entity firstRecord = results.Entities[0];
+
+                            // Verifica se o campo "arq_name" está presente antes de tentar acessá-lo
+                            
+                                // Acessa o valor do campo "arq_name"
+                                var arqNameValue = firstRecord["arq_name"].ToString();
+                                stringnumber = arqNameValue.Substring(6, 6);
+                                
+
+                                var intnumber = int.Parse(stringnumber);
+
+                               number = intnumber + 1;
+
+
+
+
+
+                        }
+                        else
+                        {
+                            number = 1; 
+                        }
+
+
+
+
 
                         string currentyear = DateTime.Now.Year.ToString();
                         string last2digitsofyear = currentyear.Substring(currentyear.Length - 2);
-                        createdDocumentPartyLog["arq_name"] = $"DPL{last2digitsofyear}-000001-{username}";
-                    
+                        createdDocumentPartyLog["arq_name"] = $"DPL{last2digitsofyear}-{number.ToString("000000")}-{username}";
+                        
+
+
+
 
 
                     }
@@ -105,7 +159,10 @@ namespace OnCreate_of_Document_Logs
                     // Definindo os valores do campo de lookup para associar os registros
                     createdDocumentLog["arq_docfromparty"] = new EntityReference("arq_documentlog", newRecordId);
                     createdDocumentLog["arq_doctoparty"] = new EntityReference("arq_documentlog", newRecordId);
-                    createdDocumentLog["arq_name"] = "Document Log: " + createdDocumentLog.GetAttributeValue<string>("arq_subject"); 
+                    createdDocumentLog["arq_name"] = "Document Log: " + createdDocumentLog.GetAttributeValue<string>("arq_subject");
+
+                    var code = createdDocumentLog.GetAttributeValue<string>("arq_code").ToString();
+                    createdDocumentLog["arq_code"] = prefixcode + code;
                     service.Update(createdDocumentLog);
 
 
