@@ -16,7 +16,7 @@ namespace OnCreate_of_Document_Logs
         public IPluginExecutionContext _context = null;
         public IOrganizationServiceFactory _serviceFactory = null;
         public IOrganizationService service = null;
-        public ITracingService trace = null; 
+        public ITracingService trace = null;
 
         public void Execute(IServiceProvider serviceProvider)
         {
@@ -59,7 +59,7 @@ namespace OnCreate_of_Document_Logs
                     // Criando um novo registro na entidade destino
                     Entity createdDocumentPartyLog = new Entity("arq_documentpartylog");
                     String username = "";
-                    var number =0;
+                    var number = 0;
                     var stringnumber = "";
                     var prefixcode = "";
 
@@ -76,25 +76,21 @@ namespace OnCreate_of_Document_Logs
                         if (doctype == 1)
                         {
                             //  "Internal";
-
                             username = "Internal";
                             prefixcode = "Internal-";
 
 
                         }
-
-                        else if (doctype == 2 )
+                        else if (doctype == 2)
                         {
-                            // INbound";
-
+                            // Inbound";
                             username = "External";
                             prefixcode = "EXP-IN-";
 
-
-                        } else if (doctype == 3)
+                        }
+                        else if (doctype == 3)
                         {
-                            // outbound";
-
+                            // Outbound";
                             username = "External";
                             prefixcode = "EXP-OUT-";
                         }
@@ -105,7 +101,7 @@ namespace OnCreate_of_Document_Logs
                         query.TopCount = 1;
                         // Add all columns to query.ColumnSet
                         query.ColumnSet.AllColumns = true;
-
+                        
                         // Add orders
                         query.AddOrder("createdon", OrderType.Descending);
 
@@ -114,42 +110,23 @@ namespace OnCreate_of_Document_Logs
 
                         if (results.Entities.Count > 0)
                         {
-                            // Acesse o primeiro registro (índice 0)
-                            Entity firstRecord = results.Entities[0];
-
-                            // Verifica se o campo "arq_name" está presente antes de tentar acessá-lo
                             
-                                // Acessa o valor do campo "arq_name"
-                                var arqNameValue = firstRecord["arq_name"].ToString();
-                                stringnumber = arqNameValue.Substring(6, 6);
-                                
-
-                                var intnumber = int.Parse(stringnumber);
-
-                               number = intnumber + 1;
-
-
-
-
+                            Entity firstRecord = results.Entities[0];  
+                                                      
+                            var arqNameValue = firstRecord["arq_name"].ToString();
+                            stringnumber = arqNameValue.Substring(6, 6);
+                            var intnumber = int.Parse(stringnumber);
+                            number = intnumber + 1;
 
                         }
                         else
                         {
-                            number = 1; 
+                            number = 1;
                         }
-
-
-
-
 
                         string currentyear = DateTime.Now.Year.ToString();
                         string last2digitsofyear = currentyear.Substring(currentyear.Length - 2);
                         createdDocumentPartyLog["arq_name"] = $"DPL{last2digitsofyear}-{number.ToString("000000")}-{username}";
-                        
-
-
-
-
 
                     }
 
