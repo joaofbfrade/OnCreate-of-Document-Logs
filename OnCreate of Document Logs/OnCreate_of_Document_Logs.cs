@@ -276,78 +276,32 @@ namespace OnCreate_of_Document_Logs
                     String relatedEntityReferenceSubject = updatedDocumentLog.GetAttributeValue<String>("arq_subject");
 
 
-                    if (relatedEntityReferenceSubject == null || relatedEntityReferenceSubject == "")
+                    Entity myentity = service.Retrieve(updatedDocumentLog.LogicalName, updatedDocumentLog.Id, new ColumnSet("arq_name", "arq_subject"));
+                    var prename = myentity.GetAttributeValue<string>("arq_name");
+                    String[] vector = prename.Split('-');
+
+                    if (vector.Length == 3)
                     {
-
-                        trace.Trace("subject is null");
-                        Entity myentity = service.Retrieve(updatedDocumentLog.LogicalName, updatedDocumentLog.Id, new ColumnSet("arq_name"));
-                        var prename = myentity.GetAttributeValue<string>("arq_name");
-
-                        String[] vector = prename.Split('-');
-
-
-                        if (vector.Length == 3)
-                        {
-                            Array.Resize(ref vector, vector.Length - 1);
-                            string result = string.Join("-", vector);
-                            myentity["arq_name"] = result;
-
-                        }
-                        else
-                        {
-                            myentity["arq_name"] = string.Join("-", vector);
-
-                        }
-
-
-
-                        if (_context.Depth == 1)
-                        {
-                            // Atualiza o registro apenas se a profundidade for 1 (não foi chamado novamente pelo próprio plugin)
-                            service.Update(myentity);
-                        }
-
+                        Array.Resize(ref vector, vector.Length - 1);
                     }
 
+                    if (relatedEntityReferenceSubject == null || relatedEntityReferenceSubject == "")
+                    {
+                        trace.Trace("subject is null");
+                        myentity["arq_name"] = string.Join("-", vector);
+                    }
                     else
                     {
                         trace.Trace("subject");
-                        Entity myentity = service.Retrieve(updatedDocumentLog.LogicalName, updatedDocumentLog.Id, new ColumnSet("arq_name", "arq_subject"));
-
-                        var prename = myentity.GetAttributeValue<string>("arq_name").ToString();
-
-                        var subj = myentity.GetAttributeValue<string>("arq_subject").ToString();
-
-
-                        String[] vector = prename.Split('-');
-                        if (vector.Length == 3)
-                        {
-                            Array.Resize(ref vector, vector.Length - 1);
-                            string result = string.Join("-", vector);
-
-
-                            myentity["arq_name"] = result + "-" + subj;
-
-                        }
-                        else
-                        {
-                            string result = string.Join("-", vector);
-
-
-                            myentity["arq_name"] = result + "-" + subj;
-
-
-
-                        }
-
-                        if (_context.Depth == 1)
-                        {
-                            // Atualiza o registro apenas se a profundidade for 1 (não foi chamado novamente pelo próprio plugin)
-                            service.Update(myentity);
-                        }
-
-
+                        var subj = myentity.GetAttributeValue<string>("arq_subject");
+                        myentity["arq_name"] = string.Join("-", vector) + "-" + subj;
                     }
+
+                    if (_context.Depth == 1)
+                    {
+                        service.Update(myentity);
+                    }
+
                 }
 
 
