@@ -19,7 +19,7 @@ namespace OnCreate_of_Document_Logs
         public IOrganizationService service = null;
         public ITracingService trace = null;
 
-        public void Execute(IServiceProvider serviceProvider)  
+        public void Execute(IServiceProvider serviceProvider)
         {
             _context = (IPluginExecutionContext)serviceProvider.GetService(typeof(IPluginExecutionContext));
             _serviceFactory = (IOrganizationServiceFactory)serviceProvider.GetService(typeof(IOrganizationServiceFactory));
@@ -103,9 +103,9 @@ namespace OnCreate_of_Document_Logs
                         {
 
                         }
-                        
-                        
-                        
+
+
+
 
                         createdDocumentPartyLogFROM["arq_document"] = new EntityReference("arq_documentlog", createdDocumentLog.Id);
                         createdDocumentPartyLogTO["arq_document"] = new EntityReference("arq_documentlog", createdDocumentLog.Id);
@@ -115,9 +115,9 @@ namespace OnCreate_of_Document_Logs
                     Guid newRecordIdFROM = service.Create(createdDocumentPartyLogFROM);
                     Guid newRecordIdTO = service.Create(createdDocumentPartyLogTO);
 
-                    
+
                     ColumnSet columns2 = new ColumnSet("arq_code");
-                    
+
                     Entity retrievedRecordfrom = service.Retrieve("arq_documentpartylog", newRecordIdFROM, columns2);
                     var codefrom = retrievedRecordfrom.GetAttributeValue<String>("arq_code");
                     var x = codefrom.Substring(6, codefrom.Length - 6);
@@ -209,7 +209,7 @@ namespace OnCreate_of_Document_Logs
                     EntityReference relatedEntityReference = updatedDocumentLog.GetAttributeValue<EntityReference>("arq_doctype");
 
 
-                    if (relatedEntityReference != null )
+                    if (relatedEntityReference != null)
                     {
                         trace.Trace("3");
                         Guid doctypeid = relatedEntityReference.Id;
@@ -246,19 +246,16 @@ namespace OnCreate_of_Document_Logs
 
                         }
 
-                        trace.Trace("5");
                         Entity myentity = service.Retrieve(updatedDocumentLog.LogicalName, updatedDocumentLog.Id, new ColumnSet("arq_name"));
-                        trace.Trace("6");
 
                         var prename = myentity.GetAttributeValue<string>("arq_name").ToString();
-                        trace.Trace("7");
 
                         String[] vector = prename.Split('-');
                         Array.Reverse(vector);
                         Array.Resize(ref vector, vector.Length - 1);
                         Array.Reverse(vector);
                         string result = string.Join("-", vector);
-                        myentity["arq_name"] = prefixcode+result;
+                        myentity["arq_name"] = prefixcode + result;
 
 
                         Array.Resize(ref vector, vector.Length - 1);
@@ -268,7 +265,7 @@ namespace OnCreate_of_Document_Logs
 
 
 
-                        
+
 
                         service.Update(myentity);
 
@@ -279,22 +276,69 @@ namespace OnCreate_of_Document_Logs
                     String relatedEntityReferenceSubject = updatedDocumentLog.GetAttributeValue<String>("arq_subject");
 
 
-                    if (relatedEntityReferenceSubject != null)
+                    if (relatedEntityReferenceSubject == null || relatedEntityReferenceSubject == "")
+                    {
+
+                        trace.Trace("subject is null");
+                        Entity myentity = service.Retrieve(updatedDocumentLog.LogicalName, updatedDocumentLog.Id, new ColumnSet("arq_name"));
+                        var prename = myentity.GetAttributeValue<string>("arq_name");
+
+                        String[] vector = prename.Split('-');
+
+
+                        if (vector.Length == 3)
+                        {
+                            Array.Resize(ref vector, vector.Length - 1);
+                            string result = string.Join("-", vector);
+                            myentity["arq_name"] = result;
+
+                        }
+                        else
+                        {
+                            myentity["arq_name"] = string.Join("-", vector);
+
+                        }
+
+
+
+                        if (_context.Depth == 1)
+                        {
+                            // Atualiza o registro apenas se a profundidade for 1 (não foi chamado novamente pelo próprio plugin)
+                            service.Update(myentity);
+                        }
+
+                    }
+
+                    else
                     {
                         trace.Trace("subject");
                         Entity myentity = service.Retrieve(updatedDocumentLog.LogicalName, updatedDocumentLog.Id, new ColumnSet("arq_name", "arq_subject"));
-                        trace.Trace("1");
-                        var prename = myentity.GetAttributeValue<string>("arq_name").ToString();
-                        trace.Trace("2");
-                        var subj = myentity.GetAttributeValue<string>("arq_subject").ToString();
-                        trace.Trace("3");
-                        String[] vector = prename.Split('-');
-                        Array.Resize(ref vector, vector.Length - 1);
-                        string result = string.Join("-", vector);
 
-                        trace.Trace("4");
-                        myentity["arq_name"] = result +"-"+ subj;
-                        trace.Trace("5");
+                        var prename = myentity.GetAttributeValue<string>("arq_name").ToString();
+
+                        var subj = myentity.GetAttributeValue<string>("arq_subject").ToString();
+
+
+                        String[] vector = prename.Split('-');
+                        if (vector.Length == 3)
+                        {
+                            Array.Resize(ref vector, vector.Length - 1);
+                            string result = string.Join("-", vector);
+
+
+                            myentity["arq_name"] = result + "-" + subj;
+
+                        }
+                        else
+                        {
+                            string result = string.Join("-", vector);
+
+
+                            myentity["arq_name"] = result + "-" + subj;
+
+
+
+                        }
 
                         if (_context.Depth == 1)
                         {
@@ -304,11 +348,8 @@ namespace OnCreate_of_Document_Logs
 
 
                     }
-
-
-
-
                 }
+
 
                 trace.Trace("else");
             }
