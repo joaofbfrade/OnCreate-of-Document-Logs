@@ -19,7 +19,7 @@ namespace OnCreate_of_Document_Logs
         public IOrganizationService service = null;
         public ITracingService trace = null;
 
-        public void Execute(IServiceProvider serviceProvider)
+        public void Execute(IServiceProvider serviceProvider)  
         {
             _context = (IPluginExecutionContext)serviceProvider.GetService(typeof(IPluginExecutionContext));
             _serviceFactory = (IOrganizationServiceFactory)serviceProvider.GetService(typeof(IOrganizationServiceFactory));
