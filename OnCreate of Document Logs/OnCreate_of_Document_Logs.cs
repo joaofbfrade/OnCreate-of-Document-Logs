@@ -272,34 +272,53 @@ namespace OnCreate_of_Document_Logs
 
                     }
 
-                    trace.Trace("3");
-                    String relatedEntityReferenceSubject = updatedDocumentLog.GetAttributeValue<String>("arq_subject");
+                   // String relatedEntityReferenceSubject = updatedDocumentLog.GetAttributeValue<String>("arq_subject");
 
 
-                    Entity myentity = service.Retrieve(updatedDocumentLog.LogicalName, updatedDocumentLog.Id, new ColumnSet("arq_name", "arq_subject"));
-                    var prename = myentity.GetAttributeValue<string>("arq_name");
-                    String[] vector = prename.Split('-');
+                    Entity myentity2 = service.Retrieve(updatedDocumentLog.LogicalName, updatedDocumentLog.Id, new ColumnSet("arq_name", "arq_subject"));
+                    var prename2 = myentity2.GetAttributeValue<string>("arq_name");
+                    var subj = myentity2.GetAttributeValue<string>("arq_subject");
+                    String[] vector2 = prename2.Split('-');
+                    
+                    
+                    trace.Trace("subj");
+                    trace.Trace(subj);
 
-                    if (vector.Length == 3)
+
+                    if (subj == null || subj =="") 
                     {
-                        Array.Resize(ref vector, vector.Length - 1);
+
+                        if (vector2.Length == 3)
+                        {
+                            trace.Trace("subj null ");
+
+                            Array.Resize(ref vector2, vector2.Length - 1);
+                            myentity2["arq_name"] = string.Join("-", vector2);
+                        }
+                        else
+                        {
+                            myentity2["arq_name"] = string.Join("-", vector2);
+                        }
                     }
 
-                    if (relatedEntityReferenceSubject == null || relatedEntityReferenceSubject == "")
-                    {
-                        trace.Trace("subject is null");
-                        myentity["arq_name"] = string.Join("-", vector);
-                    }
+                    
                     else
                     {
-                        trace.Trace("subject");
-                        var subj = myentity.GetAttributeValue<string>("arq_subject");
-                        myentity["arq_name"] = string.Join("-", vector) + "-" + subj;
+                        if (vector2.Length == 3)
+                        {
+                            trace.Trace("subj not null ");
+                            Array.Resize(ref vector2, vector2.Length - 1);
+                            myentity2["arq_name"] = string.Join("-", vector2) + "-" + subj;
+                        }
+                        else
+                        {
+                            myentity2["arq_name"] = string.Join("-", vector2) + "-" + subj;
+                        }
                     }
 
                     if (_context.Depth == 1)
                     {
-                        service.Update(myentity);
+                        service.Update(myentity2);
                     }
 
                 }
