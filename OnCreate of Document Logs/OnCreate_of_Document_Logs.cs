@@ -285,36 +285,15 @@ namespace OnCreate_of_Document_Logs
                     trace.Trace(subj);
 
 
-                    if (subj == null || subj =="") 
+                    if (vector2.Length == 3)
                     {
+                        trace.Trace(subj == null ? "subj null" : "subj not null"); 
 
-                        if (vector2.Length == 3)
-                        {
-                            trace.Trace("subj null ");
-
-                            Array.Resize(ref vector2, vector2.Length - 1);
-                            myentity2["arq_name"] = string.Join("-", vector2);
-                        }
-                        else
-                        {
-                            myentity2["arq_name"] = string.Join("-", vector2);
-                        }
+                        Array.Resize(ref vector2, vector2.Length - 1);
                     }
 
-                    
-                    else
-                    {
-                        if (vector2.Length == 3)
-                        {
-                            trace.Trace("subj not null ");
-                            Array.Resize(ref vector2, vector2.Length - 1);
-                            myentity2["arq_name"] = string.Join("-", vector2) + "-" + subj;
-                        }
-                        else
-                        {
-                            myentity2["arq_name"] = string.Join("-", vector2) + "-" + subj;
-                        }
-                    }
+                    myentity2["arq_name"] = string.Join("-", vector2) + (subj != null ? "-" + subj : "");
+
 
                     if (_context.Depth == 1)
                     {
