@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.Remoting.Contexts;
@@ -48,7 +49,7 @@ namespace OnCreate_of_Document_Logs
 
         private void OnCreate()
         {
-            trace.Trace("update");
+            trace.Trace("Create");
 
             if (_context.InputParameters.Contains("Target") && _context.InputParameters["Target"] is Entity)
             {
@@ -165,10 +166,65 @@ namespace OnCreate_of_Document_Logs
                     var code = createdDocumentLog.GetAttributeValue<string>("arq_code").ToString();
                     myentity["arq_code"] = prefixcode + code;
                     myentity["arq_name"] = prefixcode + code + "-" + createdDocumentLog.GetAttributeValue<string>("arq_subject");
+
+
+                    trace.Trace("1");
+
+                    // get user row
+
+                    var owninguser_row = service.Retrieve(createdDocumentLog.LogicalName, createdDocumentLog.Id, new ColumnSet("ownerid"));
+                    // user id
+                    Guid owninguserid = ((EntityReference)owninguser_row.Attributes["ownerid"]).Id;
+
+                    // get user row with team and BU
+                    var owningteam = service.Retrieve("systemuser", owninguserid, new ColumnSet("arq_teams", "businessunitid"));
+                    trace.Trace("owningteam => " + owningteam.Id.ToString());
+
+                    // IF HAS TEAM
+                    if (owningteam.Contains("arq_teams"))
+                    {
+                        trace.Trace("if");
+
+                        // GET TEAM ID
+                        Guid teamsid = ((EntityReference)owningteam.Attributes["arq_teams"]).Id;
+                        trace.Trace("teamsid => " + teamsid.ToString());
+
+                        // SET TEAM ID
+                        myentity["ownerid"] = new EntityReference("team", teamsid);
+                    }
+                    else if (owningteam.Contains("businessunitid"))
+                    {
+                        trace.Trace("else");
+                        // GET BU ID
+                        Guid buid = ((EntityReference)owningteam.Attributes["businessunitid"]).Id;
+
+
+
+                        // GET BU ROW WITH TEAM VALUE
+                        var BUteam = service.Retrieve("businessunit", buid, new ColumnSet("cr379_team"));
+
+                        if (BUteam.Contains("businessunit"))
+                        {
+
+                            // GET BU_TEAM ID
+                            Guid BUteamid = ((EntityReference)BUteam.Attributes["cr379_team"]).Id;
+
+                            trace.Trace("buid => " + buid.ToString());
+                            myentity["ownerid"] = new EntityReference("cr379_team", BUteamid);
+                        }
+                    }
+
                     service.Update(myentity);
 
 
-                    //trace.Trace("Novo registro criado na entidade destino com ID: " + newRecordId);
+
+
+                    trace.Trace("4");
+
+
+
+
+                    //trace.Trace("Novo registro criado na entidade destino com ID: " + newRecordId); ;
                 }
             }
         }
@@ -272,22 +328,22 @@ namespace OnCreate_of_Document_Logs
 
                     }
 
-                   // String relatedEntityReferenceSubject = updatedDocumentLog.GetAttributeValue<String>("arq_subject");
+                    // String relatedEntityReferenceSubject = updatedDocumentLog.GetAttributeValue<String>("arq_subject");
 
 
                     Entity myentity2 = service.Retrieve(updatedDocumentLog.LogicalName, updatedDocumentLog.Id, new ColumnSet("arq_name", "arq_subject"));
                     var prename2 = myentity2.GetAttributeValue<string>("arq_name");
                     var subj = myentity2.GetAttributeValue<string>("arq_subject");
                     String[] vector2 = prename2.Split('-');
-                    
-                    
+
+
                     trace.Trace("subj");
                     trace.Trace(subj);
 
 
                     if (vector2.Length == 3)
                     {
-                        trace.Trace(subj == null ? "subj null" : "subj not null"); 
+                        trace.Trace(subj == null ? "subj null" : "subj not null");
 
                         Array.Resize(ref vector2, vector2.Length - 1);
                     }
